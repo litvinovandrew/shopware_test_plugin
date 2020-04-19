@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container xmlns="http://symfony.com/schema/dic/services" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+  <services>
+    <!-- register the category calculation service -->
+    <service id="shopware_storefront.category_calculation_service" class="SingleCategoryPlugin\Bundle\StoreFrontBundle\CategoryCalculationService">
+      <argument type="service" id="dbal_connection"/>
+    </service>
+
+
+    <!-- Decorate the category service -->
+    <service id="shopware_storefront.custom_category_service" class="SingleCategoryPlugin\Bundle\StoreFrontBundle\CustomCategoryService" decorates="shopware_storefront.category_service" public="false">
+      <argument type="service" id="shopware_storefront.custom_category_service.inner"/>
+      <argument type="service" id="shopware_storefront.category_calculation_service"/>
+      <argument type="service" id="shopware_storefront.category_gateway"/>
+    </service>
+
+
+    <!-- Register TemplateRegistration subscriber -->
+    <service id="single_category_plugin.subscriber.template_registration" class="SingleCategoryPlugin\Subscriber\TemplateRegistration">
+      <argument>%single_category_plugin.plugin_dir%</argument>
+      <argument type="service" id="template"/>
+      <tag name="shopware.event_subscriber"/>
+    </service>
+
+
+    <!-- Register Enlight_Controller_Action_PostDispatchSecure_Frontend_Listing subscriber -->
+    <service id="single_category_plugin.subscriber.custom_post_dispatch_secure" class="SingleCategoryPlugin\Subscriber\Frontend">
+      <argument type="service" id="shopware_storefront.custom_category_service.inner"/>
+      <argument type="service" id="shopware_storefront.category_gateway"/>
+      <tag name="shopware.event_subscriber"/>
+    </service>
+
+
+  </services>
+</container>
